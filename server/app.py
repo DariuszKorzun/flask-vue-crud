@@ -9,29 +9,8 @@ from firebase_admin import credentials, firestore, initialize_app
 cred = credentials.Certificate('/Users/dariuszkorzun/Documents/GitHub/bigdatacampv1/bigdatacampdb-10512eaf8a21.json')
 default_app = initialize_app(cred)
 db = firestore.client()
-todo_ref = db.collection('bigdataproducts')
-dictionary_ref = db.collection('dictionary').document(u'bigdataproducts')
-
-Products = [
-    {
-        'id': uuid.uuid4().hex,
-        'title': 'On the Road',
-        'author': 'Jack Kerouac',
-        'read': True
-    },
-    {
-        'id': uuid.uuid4().hex,
-        'title': 'Harry Potter and the Philosopher\'s Stone',
-        'author': 'J. K. Rowling',
-        'read': False
-    },
-    {
-        'id': uuid.uuid4().hex,
-        'title': 'Green Eggs and Ham',
-        'author': 'Dr. Seuss',
-        'read': True
-    }
-]
+bigdataproducts = db.collection('bigdataproducts')
+#dictionary_ref = db.collection('dictionary').document(u'bigdataproducts')
 
 # configuration
 DEBUG = True
@@ -61,6 +40,7 @@ def ping_pong():
 @app.route('/products', methods=['GET', 'POST'])
 def products():
     response_object = {'status': 'success'}
+
     if request.method == 'POST':
         post_data = request.get_json()
         Products.append({
@@ -71,14 +51,17 @@ def products():
         })
         response_object['message'] = 'Product added!'
         return jsonify(response_object)
+
     else:
-        #response_object['products'] = Products
-        documents = todo_ref.stream()
-        all_todos = {}
-        for doc in documents:
-            all_todos[doc.id] = doc.to_dict()
-        print(all_todos)
-        return jsonify(all_todos), 200
+        documents = bigdataproducts.stream()
+        all_docs = {}
+        for doc in bigdataproducts.stream():
+            print(doc.id)
+            for key, value in doc.to_dict().items():
+                print(key, ' : ', value)
+            #all_docs(doc.id) = doc.to_dict().items()
+            print('---')
+        return str(documents), 200
 
 @app.route('/dictionaries', methods=['GET', 'POST'])
 def dictionaries():
@@ -99,7 +82,7 @@ def dictionaries():
         #all_dictionaries = {}
         #for doc in documents:
         #    all_dictionaries[doc.id] = doc.to_dict()
-        print(f'{documents.to_dict()}')
+        #print(f'{documents.to_dict()}')
         return (f'{documents.to_dict()}')
 
 @app.route('/products/<product_id>', methods=['PUT', 'DELETE'])

@@ -1,0 +1,223 @@
+{% extends 'index.html' %}
+{% block content %}
+
+<div class="container-fluid">
+<br>
+<br>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover">
+      <caption>Current Records</caption>
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Product</th>
+          <th scope="col">Full name</th>
+          <th scope="col">Category</th>
+          <th scope="col">Subcategory</th>
+          <th scope="col">Type</th>
+          <th scope="col">Developer</th>
+          <th scope="col">Wesite</th>
+          <th scope="col">Documentation</th>
+          <th scope="col">Current release</th>
+          <th scope="col">First release</th>
+          <th scope="col">Created</th>
+          <th scope="col">Modified</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody class="">
+        {% for key, item in all_docs.items()|sort(case_sensitive=false) %}
+          <form id="documentsForm{{ key }}" onsubmit="event.preventDefault();">
+            <div class="form-group">
+              <tr>
+                <th class="form-control-plaintext form-control-sm" scope="row"><input type="hidden" name="productname" value="{{ key }}" />{{ key }}</th>
+                <td><input class="form-control form-control-sm" type="text" name="fullname" value="{% print(item['fullname']) %}" /></td>
+                <td>
+                  <select class="form-control form-control-sm" multiple name="category">
+                    {% for element in bdccategories %}
+                    <option {% print( 'selected' if (element in item['category'] )) %} value="{% print(element) %}">{% print(element) %}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" multiple name="subcategory">
+                    {% for element in item['subcategory'] %}
+                    <option selected value="{% print(element) %}">{% print(element) %}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td>
+                  <select class="form-control form-control-sm" multiple name="type">
+                    {% for element in item['type'] %}
+                    <option selected value="{% print(element) %}">{% print(element) %}</option>
+                    {% endfor %}
+                  </select>
+                </td>
+                <td><input class="form-control form-control-sm" type="text" name="developer" value="{% print(item['developer']) %}"></td>
+                <td><input class="form-control form-control-sm" type="text" name="website" value="{% print(item['website']) %}"></td>
+                <td><input class="form-control form-control-sm" type="text" name="documentation" value="{% print(item['documentation']) %}"></td>
+                <td><input class="form-control form-control-sm" type="text" name="currentrelease" value="{% print(item['currentrelease']) %}"></td>
+                <td><input class="form-control form-control-sm" type="text" name="firstrelease" value="{% print(item['firstrelease']) %}"></td>
+                <td><input class="form-control form-control-sm" type="datetime" name="created" value="{% print(item['created']) %}" disabled></td>
+                <td><input class="form-control form-control-sm" type="datetime" name="modified" value="{% print(item['modified']) %}" disabled></td>
+                <td>
+                  <button class="btn btn-primary" onclick="updateDocument('{{ key }}')">Update</button>
+                  <button class="btn btn-primary" onclick="deleteDocument('{{ key }}')">Delete</button>
+                </td>
+              </tr>
+            </div>
+          </form>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <HR>
+
+  <h1>Add New Record</h1>
+
+  <form id="documentForm" onsubmit="event.preventDefault();">
+    <div class="form-group">
+      <div class="form-row">
+        <div class="col">
+          <input class="form-control form-control-sm" type="text" name="productname" value="product name" />
+        </div>
+        <div class="col">
+          <input class="form-control form-control-sm" type="text" name="fullname" value="full name" />
+        </div>
+        <div class="col">
+          <select  class="form-control form-control-sm" multiple name="category">
+            <option value="compute infrastructure">compute infrastructure</option>
+            <option value="data movement">data movement</option>
+            <option value="database">database</option>
+          </select>
+        </div>
+        <div class="col">
+          <select class="form-control form-control-sm" multiple name="subcategory">
+            <option value="sub1">sub1</option>
+            <option value="sub2">sub2</option>
+            <option value="sub3">sub3</option>
+          </select>
+        </div>
+        <div class="col">
+          <select class="form-control form-control-sm" multiple name="type">
+            <option value="t1">t1</option>
+            <option value="t2">t2</option>
+            <option value="t3">t3</option>
+          </select>
+        </div>
+        <div class="col">
+          <select class="form-control form-control-sm" name="developer">
+            <option value="Amazon">Amazon</option>
+            <option value="Google">Google</option>
+            <option value="Microsoft">Microsoft</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="col">
+          <input class="form-control form-control-sm" type="text" name="website" value="website" />
+        </div>
+        <div class="col">
+          <input class="form-control form-control-sm" type="text" name="documentation" value="documentation" />
+        </div>
+        <div class="col">
+          <button class="btn btn-primary" onclick="addDocument()">Add</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+
+
+</div>
+
+<script>
+function addDocument() {
+  let documentData = new FormData( document.getElementById( 'documentForm' ) );
+  let documentObject = {};
+
+  documentData.forEach(function(value, key){
+    if(!Reflect.has(documentObject, key)){
+        documentObject[key] = value;
+        return;
+    }
+    if(!Array.isArray(documentObject[key])){
+        documentObject[key] = [ documentObject[key] ];
+    }
+    documentObject[key].push(value);
+  });
+
+  let documentDataJSON = JSON.stringify(documentObject);
+  alert(documentDataJSON);
+
+  $.ajax({
+      url : "http://localhost:5000/documents/add",
+      method : "post",
+      contentType : "application/json",
+      data : documentDataJSON,
+      dataType : "json"
+  })
+  .done( function( response ) {
+      alert( response['response'] );
+      location.reload();
+  })
+  .fail( function( error ) {
+      alert( "Connection Error:" + '\n' + error );
+  })
+}
+
+function updateDocument( documentKey ) {
+  let documentData = new FormData( document.getElementById( 'documentsForm' + documentKey ) );
+  let documentObject = {};
+
+  documentData.forEach(function(value, key){
+    if(!Reflect.has(documentObject, key)){
+        documentObject[key] = value;
+        return;
+    }
+    if(!Array.isArray(documentObject[key])){
+        documentObject[key] = [ documentObject[key] ];
+    }
+    documentObject[key].push(value);
+  });
+
+  let documentDataJSON = JSON.stringify(documentObject);
+  alert(documentDataJSON);
+
+  $.ajax({
+      url : "http://localhost:5000/documents/update",
+      method : "post",
+      contentType : "application/json",
+      data : documentDataJSON,
+      dataType : "json"
+  })
+  .done( function( response ) {
+      alert( response['response'] );
+      location.reload();
+  })
+  .fail( function( error ) {
+      alert( "Connection Error:" + '\n' + error );
+  })
+}
+
+function deleteDocument(documentKey) {
+  var gcDocument = JSON.stringify( documentKey );
+  $.ajax({
+      url : "http://localhost:5000/documents/delete",
+      method : "POST",
+      contentType : "application/json",
+      data : gcDocument,
+      dataType : "json",
+      processData: false
+  })
+  .done( function( response ) {
+      alert( response['response'] + '\n' + response['time'] );
+      location.reload();
+  })
+  .fail( function( error ) {
+      alert( "Connection Error:" + '\n' + error );
+  })
+}
+</script>
+
+{% endblock %}

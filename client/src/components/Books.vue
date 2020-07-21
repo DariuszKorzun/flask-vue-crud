@@ -3,6 +3,23 @@
     <div class="row">
       <div class="col-12">
 
+        <hr>
+          <div class="container" id="productsFilter">
+            <div class="filter">
+              <label><input type="radio" v-model="selectedProducts" value="All" /> All</label>
+              <label><input type="radio" v-model="selectedProducts" value="Storage" /> Tech</label>
+              <label><input type="radio" v-model="selectedProducts" value="Ingestion" /> Entertainment</label>
+              <label><input type="radio" v-model="selectedProducts" value="Fictional" /> Fictional</label>
+            </div>
+          </div>
+
+          <ul class="people-list">
+            <li v-for="product in filteredProducts">
+                {{ product.fullname }}
+              </li>
+          </ul>
+        <hr>
+
         <h1>Products</h1>
         <hr><br><br>
         <alert :message=message v-if="showMessage"></alert>
@@ -191,12 +208,28 @@ export default {
         author: '',
         read: [],
       },
+      selectedCategory: "All",
     };
   },
   components: {
     alert: Alert,
   },
+  computed: {
+
+  },
   methods: {
+    filteredProducts() {
+      var vm = this;
+      var category = vm.selectedProducts;
+
+      if (category === 'All') {
+        return vm.products;
+      } else {
+        return vm.products.filter( function (products) {
+          return this.products.category === category;
+        });
+      }
+    },
     getProducts() {
       const path = 'http://localhost:5000/products';
       axios.get(path)
@@ -212,7 +245,7 @@ export default {
       const path = 'http://localhost:5000/dictionaries';
       axios.get(path)
         .then((res) => {
-          this.dictionaries = function(){return Object.keys(res.data).sort().reduce((r,k)=>(r[k]=o[k],r),{})};
+          // this.dictionaries = function(){return Object.keys(res.data).sort().reduce((r,k)=>(r[k]=o[k],r),{})};
           // eslint-disable-next-line
           console.log(res.data);
         })

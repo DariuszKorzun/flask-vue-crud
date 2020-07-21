@@ -1,0 +1,100 @@
+<html>
+<head>
+<style>
+  body {
+    font-size: 20px;
+    font-family: sans-serif;
+  }
+  .container {
+  	padding: 20px;
+  	width: 90%;
+  	max-width: 400px;
+  	margin: 0 auto;
+  }
+
+  label {
+  	display: block;
+  	line-height: 1.5em;
+  }
+
+  ul {
+  	margin-left: 0;
+  	padding-left: 0;
+  	list-style: none;
+  }
+
+  li {
+  	padding: 8px 16px;
+  	border-bottom: 1px solid #eee;
+  }
+</style>
+</head>
+<script src="https://unpkg.com/vue@2.5.17/dist/vue.js"></script>
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+<body>
+
+<div class="container" id="people">
+	<div class="filter">
+		<label><input type="radio" v-model="selectedCategory" value="All" /> All</label>
+		<label><input type="radio" v-model="selectedCategory" value="Tech" /> Tech</label>
+		<label><input type="radio" v-model="selectedCategory" value="Entertainment" /> Entertainment</label>
+		<label><input type="radio" v-model="selectedCategory" value="Fictional" /> Fictional</label>
+	</div>
+
+	<ul class="people-list">
+		<li v-for="person in filteredPeople">{{ person.name }}</li>
+	</ul>
+  {{ products }}
+</div>
+
+<script>
+  const url = "http://localhost:5000/products";
+
+  var vm = new Vue({
+	el:  "#people",
+  data: {
+    products: [],
+    people: [
+			{ "ala": {name: "Bill Gates", category: "Tech" }},
+			{ "jola": {name: "Steve Jobs", category: "Tech" }},
+			{ "kasia": {name: "Jeff Bezos", category: "Tech" }},
+			{ "asia": {name: "George Clooney", category: "Entertainment" }}
+		],
+		selectedCategory: "All"
+	},
+  methods: {
+    getProducts() {
+      const path = 'http://localhost:5000/products';
+      axios.get(path)
+        .then((res) => {
+          this.products = res.data;
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.error(error);
+        });
+    }
+  },
+  computed: {
+		filteredPeople: function() {
+			var vm = this;
+			var category = vm.selectedCategory;
+
+			if(category === "All") {
+				return vm.people;
+			} else {
+				return vm.people.filter(function(person) {
+					return person.category === category;
+				});
+			}
+		}
+	},
+  beforeMount() {
+    this.getProducts();
+  },
+});
+</script>
+
+</body>
+</html>
